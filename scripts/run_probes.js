@@ -1,0 +1,1 @@
+console.log('FlyRank Social Media Studio acceptance probes');console.log('Run npm test for the automated test suite.');
