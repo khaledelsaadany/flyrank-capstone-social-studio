@@ -1,0 +1,35 @@
+name: Scheduled Phase 5 and 6 Merges
+
+on:
+  schedule:
+    - cron: '38 8 10 9 *'
+    - cron: '38 16 10 9 *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  merge-phases:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Merge scheduled phase
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EVENT_SCHEDULE: ${{ github.event.schedule }}
+        run: |
+          set -euo pipefail
+          if [ "$EVENT_SCHEDULE" = "38 8 10 9 *" ]; then
+            PR=6
+            LABEL="Phase 5"
+          elif [ "$EVENT_SCHEDULE" = "38 16 10 9 *" ]; then
+            PR=7
+            LABEL="Phase 6"
+          else
+            echo "Unknown schedule: $EVENT_SCHEDULE"
+            exit 1
+          fi
+
+          echo "Merging $LABEL (PR #$PR)"
+          gh pr merge "$PR" --repo "$GITHUB_REPOSITORY" --merge --delete-branch=false
