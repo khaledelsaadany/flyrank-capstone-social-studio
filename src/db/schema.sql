@@ -1,0 +1,8 @@
+-- FlyRank Social Media Studio Schema
+CREATE TABLE IF NOT EXISTS posts (id TEXT PRIMARY KEY,title TEXT NOT NULL,source_url TEXT,raw_content TEXT NOT NULL,author TEXT,created_at TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS variants (id TEXT PRIMARY KEY,post_id TEXT NOT NULL,platform TEXT NOT NULL,content TEXT NOT NULL,hashtags TEXT NOT NULL,status TEXT NOT NULL CHECK (status IN ('draft','approved','rejected','published')),version_label TEXT DEFAULT 'A',is_winner INTEGER DEFAULT 0,grounding_score REAL DEFAULT 1.0,created_at TEXT NOT NULL,updated_at TEXT NOT NULL,FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE);
+CREATE TABLE IF NOT EXISTS schedule_slots (id TEXT PRIMARY KEY,variant_id TEXT NOT NULL,platform TEXT NOT NULL,scheduled_time TEXT NOT NULL,status TEXT NOT NULL CHECK (status IN ('pending','processing','published','failed','cancelled')),created_at TEXT NOT NULL,FOREIGN KEY (variant_id) REFERENCES variants(id) ON DELETE CASCADE);
+CREATE TABLE IF NOT EXISTS publish_history (id TEXT PRIMARY KEY,slot_id TEXT NOT NULL,variant_id TEXT NOT NULL,idempotency_key TEXT NOT NULL UNIQUE,adapter_name TEXT NOT NULL,status TEXT NOT NULL CHECK (status IN ('success','failed','skipped_duplicate')),external_post_id TEXT NOT NULL,external_url TEXT,payload_preview TEXT NOT NULL,error_message TEXT,published_at TEXT NOT NULL,FOREIGN KEY (slot_id) REFERENCES schedule_slots(id),FOREIGN KEY (variant_id) REFERENCES variants(id));
+CREATE INDEX IF NOT EXISTS idx_variants_post_id ON variants(post_id);
+CREATE INDEX IF NOT EXISTS idx_schedule_slots_status_time ON schedule_slots(status,scheduled_time);
+CREATE INDEX IF NOT EXISTS idx_publish_history_idempotency ON publish_history(idempotency_key);
